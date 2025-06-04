@@ -376,7 +376,7 @@ public class CouchbaseSourceTask extends SourceTask {
         lifecycle.logCommittedToKafkaTopic(couchbaseRecord, metadata);
       }
     } else {
-      LOGGER.warn("Committed a record we didn't create? Record key {}; taskUuid={}", record.key(), taskUuid());
+      LOGGER.trace("Committed a record we didn't create? Record key {}; taskUuid={}", record.key(), taskUuid());
     }
 
     sourceHandler.onRecordCommitted(record, metadata);
