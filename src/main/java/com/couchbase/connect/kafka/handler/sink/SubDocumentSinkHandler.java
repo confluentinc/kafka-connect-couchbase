@@ -112,6 +112,9 @@ public class SubDocumentSinkHandler implements SinkHandler {
     }
 
     SubdocOperation operation = getOperation(documentId, doc);
+    if (operation == null) {
+      return SinkAction.ignore();
+    }
 
     MutateInSpec mutation;
 
@@ -164,7 +167,7 @@ public class SubDocumentSinkHandler implements SinkHandler {
 
     } catch (IOException | DocumentPathExtractor.DocumentPathNotFoundException e) {
       log.error("Failed to extract subdocument path: {}", e.getClass().getName());
-      return new SubdocOperation(documentId, null, null);
+      return null;
     }
   }
 
