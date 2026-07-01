@@ -178,7 +178,7 @@ public class AnalyticsSinkHandler implements SinkHandler {
         try {
           node = JsonObject.fromJson(doc.content());
         } catch (Exception e) {
-          log.warn("could not generate analytics statement from node (not json): {}", e.getClass().getName());
+          log.warn("could not generate n1ql statement from node (not json): {}", e.getClass().getName());
           continue;
         }
 
