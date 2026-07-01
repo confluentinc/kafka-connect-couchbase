@@ -97,7 +97,7 @@ public class N1qlSinkHandler implements SinkHandler {
     try {
       node = JsonObject.fromJson(doc.content());
     } catch (Exception e) {
-      log.warn("could not generate n1ql statement from node (not json)", e);
+      log.warn("could not generate n1ql statement from node (not json): {}", e.getClass().getName());
       return SinkAction.ignore();
     }
 
