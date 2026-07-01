@@ -143,7 +143,7 @@ public class RawJsonSourceHandler implements SourceHandler {
 
         final byte[] document = docEvent.content();
         if (!isValidJson(document)) {
-          LOGGER.warn("Skipping non-JSON document: bucket={} key={}", docEvent.bucket(), docEvent.qualifiedKey());
+          LOGGER.warn("Skipping non-JSON document: bucket={}", docEvent.bucket());
           return false;
         }
 

@@ -117,8 +117,8 @@ public class KafkaRetryHelper implements Closeable {
         String retryTimeoutName = ConfigHelper.keyName(CouchbaseSinkConfig.class, CouchbaseSinkConfig::retryTimeout);
 
         log.error("Initial attempt for {} failed. Retry is disabled. Connector will terminate. " +
-                "To mitigate this kind of failure, enable retry by setting the '{}' connector config property.",
-            actionDescription, retryTimeoutName, e);
+                "To mitigate this kind of failure, enable retry by setting the '{}' connector config property. Exception: {}",
+            actionDescription, retryTimeoutName, e.getClass().getName());
         throw e;
       }
 
@@ -131,8 +131,8 @@ public class KafkaRetryHelper implements Closeable {
         throw new RetriableException("Retry for " + actionDescription + " failed. Will try again later.", e);
       }
 
-      log.error("Retry for {} failed. Retry timeout ({}) expired. Connector will terminate.",
-          actionDescription, retryTimeout, e);
+      log.error("Retry for {} failed. Retry timeout ({}) expired. Connector will terminate. Exception: {}",
+          actionDescription, retryTimeout, e.getClass().getName());
       throw e;
     }
   }

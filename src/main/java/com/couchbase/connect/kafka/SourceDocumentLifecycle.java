@@ -104,7 +104,6 @@ public class SourceDocumentLifecycle {
     if (enabled()) {
       LinkedHashMap<String, Object> details = new LinkedHashMap<>();
       details.put("topic", record.topic());
-      details.put("key", record.key());
       details.put("kafkaPartition", record.kafkaPartition());
       details.put("sourcePartition", record.sourcePartition());
       details.put("sourceOffset", record.sourceOffset());
@@ -146,7 +145,6 @@ public class SourceDocumentLifecycle {
       // In case the user customized their logging config to exclude MDC
       getConnectorContextFromLoggingContext().ifPresent(it -> message.put("context", it));
 
-      message.put("documentId", sourceRecord.getCouchbaseDocumentId());
       message.putAll(milestoneDetails);
       message.put("taskUuid", taskUuid);
       doLog(message);
@@ -162,7 +160,6 @@ public class SourceDocumentLifecycle {
       // In case the user customized their logging config to exclude MDC
       getConnectorContextFromLoggingContext().ifPresent(it -> message.put("context", it));
 
-      message.put("documentId", event.getQualifiedKey());
       message.putAll(milestoneDetails);
       message.put("taskUuid", taskUuid);
       doLog(message);
