@@ -19,6 +19,7 @@ package com.couchbase.connect.kafka.util;
 import com.couchbase.client.core.annotation.Stability;
 import com.couchbase.connect.kafka.config.sink.CouchbaseSinkConfig;
 import com.couchbase.connect.kafka.util.config.ConfigHelper;
+import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.errors.RetriableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,27 +114,37 @@ public class KafkaRetryHelper implements Closeable {
       }
 
     } catch (Exception e) {
+      // Never propagate the raw Couchbase SDK exception to the Connect framework. Its
+      // KeyValueErrorContext is rendered as JSON that embeds the record's documentId (the
+      // sink record's key), which WorkerSinkTask would log at ERROR and expose in the
+      // task-status trace. Rethrow carrying only the safe exception class name, and without
+      // the original exception as a cause so upstream stack-trace logging cannot re-leak it.
       if (retryTimeout.isZero()) {
         String retryTimeoutName = ConfigHelper.keyName(CouchbaseSinkConfig.class, CouchbaseSinkConfig::retryTimeout);
 
         log.error("Initial attempt for {} failed. Retry is disabled. Connector will terminate. " +
                 "To mitigate this kind of failure, enable retry by setting the '{}' connector config property. Exception: {}",
             actionDescription, retryTimeoutName, e.getClass().getName());
-        throw e;
+        throw new ConnectException("Initial attempt for " + actionDescription
+            + " failed and retry is disabled; connector will terminate. Exception: " + e.getClass().getName());
       }
 
       if (deadline.get() == null) {
         deadline.set(new Deadline(clock, retryTimeout));
-        throw new RetriableException("Initial attempt for " + actionDescription + " failed. Will try again later.", e);
+        throw new RetriableException("Initial attempt for " + actionDescription
+            + " failed. Will try again later. Exception: " + e.getClass().getName());
       }
 
       if (deadline.get().hasTimeLeft()) {
-        throw new RetriableException("Retry for " + actionDescription + " failed. Will try again later.", e);
+        throw new RetriableException("Retry for " + actionDescription
+            + " failed. Will try again later. Exception: " + e.getClass().getName());
       }
 
       log.error("Retry for {} failed. Retry timeout ({}) expired. Connector will terminate. Exception: {}",
           actionDescription, retryTimeout, e.getClass().getName());
-      throw e;
+      throw new ConnectException("Retry for " + actionDescription
+          + " failed and the retry timeout (" + retryTimeout + ") expired; connector will terminate. Exception: "
+          + e.getClass().getName());
     }
   }
 

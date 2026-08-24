@@ -16,6 +16,7 @@
 
 package com.couchbase.connect.kafka.transform;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.config.ConfigDef;
@@ -33,6 +34,10 @@ public class DeserializeJson<R extends ConnectRecord<R>> implements Transformati
 
   static {
     objectMapper.enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+    // Don't let Jackson embed a fragment of the (potentially sensitive) record value in a
+    // parse error's location. Without this, the "[Source: (byte[])\"...\"]" clause carries the
+    // raw record value into the DataException below, and on into the log and task-status trace.
+    objectMapper.getFactory().disable(JsonParser.Feature.INCLUDE_SOURCE_IN_LOCATION);
   }
 
   public static final String OVERVIEW_DOC =
