@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.config.ConfigDef;
-import org.apache.kafka.common.utils.ByteBufferInputStream;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.transforms.Transformation;
@@ -58,9 +57,10 @@ public class DeserializeJson<R extends ConnectRecord<R>> implements Transformati
         newValue = objectMapper.readValue((byte[]) value, Map.class);
 
       } else if (value instanceof ByteBuffer) {
-        try (ByteBufferInputStream in = new ByteBufferInputStream((ByteBuffer) value)) {
-          newValue = objectMapper.readValue(in, Map.class);
-        }
+        ByteBuffer buf = ((ByteBuffer) value).duplicate();
+        byte[] bytes = new byte[buf.remaining()];
+        buf.get(bytes);
+        newValue = objectMapper.readValue(bytes, Map.class);
 
       } else {
         throw new DataException(getClass().getSimpleName() + " transform expected value to be a byte array or ByteBuffer but got " + value.getClass().getName());

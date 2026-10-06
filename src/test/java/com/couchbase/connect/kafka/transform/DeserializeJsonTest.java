@@ -20,8 +20,11 @@ import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.jupiter.api.Test;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,8 +33,20 @@ public class DeserializeJsonTest {
   // A recognizable, synthetic stand-in for a sensitive record value.
   private static final String CANARY_VALUE = "SUPER_SECRET_CANARY_VALUE_9f3b";
 
-  private static SinkRecord recordWithValue(byte[] value) {
+  private static SinkRecord recordWithValue(Object value) {
     return new SinkRecord("topic", 0, null, null, null, value, 0L);
+  }
+
+  @Test
+  public void deserializesByteBufferValue() {
+    ByteBuffer buf = ByteBuffer.wrap("{\"a\":1}".getBytes(StandardCharsets.UTF_8));
+
+    try (DeserializeJson<SinkRecord> smt = new DeserializeJson<>()) {
+      SinkRecord result = smt.apply(recordWithValue(buf));
+      Map<?, ?> value = (Map<?, ?>) result.value();
+      assertEquals(1, value.size());
+      assertEquals(1, value.get("a"));
+    }
   }
 
   @Test
